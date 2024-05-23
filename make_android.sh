@@ -1,0 +1,24 @@
+cmake \
+  -DCMAKE_TOOLCHAIN_FILE=${ANDROID_NDK}/build/cmake/android.toolchain.cmake \
+  -DCMAKE_INSTALL_PREFIX="/Users/gfodor/dopple/slam/opt/dm-vio/" \
+  -DCMAKE_CXX_FLAGS="-std=c++11" \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DANDROID_NDK=${ANDROID_NDK} \
+  -DANDROID_LINKER_FLAGS=-Wl,--strip-debug \
+  -DANDROID_TOOLCHAIN="cmake" \
+  -DANDROID_ABI="arm64-v8a" \
+  -DANDROID_STL="c++_shared" \
+  -DBoost_INCLUDE_DIR="/Users/gfodor/dopple/slam/opt/boost/include/" \
+  -DBoost_LIBRARY_DIR_RELEASE="/Users/gfodor/dopple/slam/opt/boost/lib/" \
+  -DEIGEN3_INCLUDE_DIR="/Users/gfodor/dopple/slam/opt/eigen/include/eigen3/" \
+  -DBOOST_ROOT="/Users/gfodor/dopple/slam/opt/boost/" \
+  -DCMAKE_IGNORE_PATH="/opt/homebrew/include" \
+  -DCMAKE_POLICY_DEFAULT_CMP0057=NEW \
+  -DANDROID_CPP_FEATURES="rtti exceptions" \
+  -DGTSAM_DIR="/Users/gfodor/dopple/slam/opt/gtsam/lib/cmake/GTSAM" \
+  -Dyaml-cpp_DIR="/Users/gfodor/dopple/slam/opt/yaml-cpp/lib/cmake/yaml-cpp" \
+  -DOpenCV_DIR="/Users/gfodor/dopple/slam/opt/opencv/sdk/native/jni" \
+  -DANDROID_PLATFORM=android-34 \
+  -DANDROID_ARM_NEON=TRUE  \
+  -DANDROID_DISABLE_FORMAT_STRING_CHECKS=TRUE \
+  ..

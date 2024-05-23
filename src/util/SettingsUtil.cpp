@@ -82,11 +82,13 @@ void dmvio::SettingsUtil::createPangolinSettings()
 {
     for(auto&& param : parameters)
     {
+#ifdef HAS_PANGOLIN
         auto* set = param.second.pangolinSetting.get();
         if(set)
         {
             set->createVar();
         }
+#endif
     }
 }
 
@@ -94,10 +96,12 @@ void dmvio::SettingsUtil::updatePangolinSettings()
 {
     for(auto&& param : parameters)
     {
+#ifdef HAS_PANGOLIN
         auto* set = param.second.pangolinSetting.get();
         if(set)
         {
             set->updateVar();
         }
+#endif
     }
 }

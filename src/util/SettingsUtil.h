@@ -27,7 +27,10 @@
 #include <iostream>
 #include <functional>
 #include <assert.h>
+
+#ifdef HAS_PANGOLIN
 #include <pangolin/var/var.h>
+#endif
 
 // This file contains utils for settings.
 // Most settings should be in (potentially nested) settings classes which.
@@ -83,6 +86,7 @@ public:
 
     void createVar() override
     {
+#ifdef HAS_PANGOLIN
         if(boolConstr)
         {
             var.reset(new pangolin::Var<T>("ui." + name, *pointer, toggle));
@@ -90,17 +94,22 @@ public:
         {
             var.reset(new pangolin::Var<T>("ui." + name, *pointer, min, max));
         }
+#endif
     }
 
     void updateVar() override
     {
+#ifdef HAS_PANGOLIN
         *pointer = var->Get();
         assert(var);
+#endif
     }
 
 private:
     std::string name;
+#ifdef HAS_PANGOLIN
     std::unique_ptr<pangolin::Var<T>> var;
+#endif
     T* pointer;
     bool boolConstr, toggle;
     double min, max;
@@ -136,13 +145,17 @@ public:
     template<typename T> void registerArg(std::string name, T& arg, bool toggle)
     {
         registerArg(name, arg);
+#ifdef HAS_PANGOLIN
         parameters.at(name).pangolinSetting.reset(new PangolinSetting<T>(name, &arg, toggle));
+#endif
     }
 
     template<typename T> void registerArg(std::string name, T& arg, double min, double max)
     {
         registerArg(name, arg);
+#ifdef HAS_PANGOLIN
         parameters.at(name).pangolinSetting.reset(new PangolinSetting<T>(name, &arg, min, max));
+#endif
     }
 
     // Dump all settings to file.
@@ -166,7 +179,9 @@ private:
         bool loadedFromCommandLine{
                 false}; // Used to make sure that we don't overwrite parameters set using commandline when reading from yaml.
 
+#ifdef HAS_PANGOLIN
         std::unique_ptr<PangolinSettingVar> pangolinSetting;
+#endif
     };
     std::map<std::string, Parameter> parameters;
 };
