@@ -106,11 +106,18 @@ dmvio::IMUInitVariances dmvio::IMUInitializerLogic::performCoarseIMUInit(double 
     IMUInitVariances variances;
     if(result.good)
     {
-        gtsam::Marginals marginals = coarseIMUOptimizer->getMarginals();
-        variances = IMUInitVariances(marginals, gtsam::Symbol('s', 0), coarseIMUOptimizer->getBiasKey());
+        try
+        {
+          gtsam::Marginals marginals = coarseIMUOptimizer->getMarginals();
 
-        std::cout << "CoarseIMUInit normalized error: " << result.normalizedError << " variance: " <<
-                  variances.scaleVariance << " scale: " << transformDSOToIMU->getScale() << std::endl;
+          variances = IMUInitVariances(marginals, gtsam::Symbol('s', 0), coarseIMUOptimizer->getBiasKey());
+
+          std::cout << "CoarseIMUInit normalized error: " << result.normalizedError << " variance: " <<
+                    variances.scaleVariance << " scale: " << transformDSOToIMU->getScale() << std::endl;
+        } catch (gtsam::IndeterminantLinearSystemException& exc)
+        {
+            variances.indetermined = true;
+        }
     }
 
     return variances;
