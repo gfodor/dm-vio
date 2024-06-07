@@ -169,8 +169,9 @@ FullSystem::FullSystem(bool linearizeOperationPassed, const dmvio::IMUCalibratio
 	ef = new EnergyFunctional(*baIntegration);
 	ef->red = &this->treadReduce;
 
-	isLost=false;
-	initFailed=false;
+    isLost=false;
+    initFailed=false;
+    isVisualLost=false;
 
 
 	needNewKFAfter = -1;
@@ -297,7 +298,7 @@ void FullSystem::printResult(std::string file, bool onlyLogKFPoses, bool saveMet
 	myfile.close();
 }
 
-std::pair<Vec4, bool> FullSystem::trackNewCoarse(FrameHessian* fh, Sophus::SE3 *referenceToFrameHint)
+std::pair<Vec4, bool> FullSystem::trackNewCoarse(FrameHessian* fh, Sophus::SE3 *referenceToFrameHint, bool initDone, bool imuUsedBefore)
 {
     dmvio::TimeMeasurement timeMeasurement(referenceToFrameHint ? "FullSystem::trackNewCoarse" : "FullSystem::trackNewCoarseNoIMU");
 	assert(allFrameHistory.size() > 0);
@@ -910,11 +911,15 @@ void FullSystem::addActiveFrame(ImageAndExposure* image, int id, dmvio::IMUData*
 
     measureInit.end();
 
-	if(!initialized)
-	{
-		// use initializer!
-		if(coarseInitializer->frameID<0)	// first frame set. fh is kept by coarseInitializer.
-		{
+    bool initDone = false;
+
+    if(!initialized)
+    {
+        // use initializer!
+        if(coarseInitializer->frameID<0)    // first frame set. fh is kept by coarseInitializer.
+        {
+            initDone = false;
+
             // Only in this case no IMU-data is accumulated for the BA as this is the first frame.
 		    dmvio::TimeMeasurement initMeasure("InitializerFirstFrame");
 			coarseInitializer->setFirst(&Hcalib, fh);

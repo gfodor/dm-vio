@@ -160,6 +160,7 @@ public:
     std::vector<IOWrap::Output3DWrapper*> outputWrapper;
 
 	bool isLost;
+	bool isVisualLost;
 	bool initFailed;
 	bool initialized;
 	bool linearizeOperation;
@@ -194,7 +195,7 @@ private:
 	double linAllPointSinle(PointHessian* point, float outlierTHSlack, bool plot);
 
 	// mainPipelineFunctions
-    std::pair<Vec4, bool> trackNewCoarse(FrameHessian* fh, Sophus::SE3 *referenceToFrameHint = 0);
+    std::pair<Vec4, bool> trackNewCoarse(FrameHessian* fh, Sophus::SE3 *referenceToFrameHint = 0, bool initDone = false, bool imuUsedBefore = false);
 	void traceNewCoarse(FrameHessian* fh);
 	void activatePoints();
 	void activatePointsMT();
