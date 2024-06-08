@@ -438,25 +438,27 @@ std::pair<Vec4, bool> FullSystem::trackNewCoarse(FrameHessian* fh, Sophus::SE3 *
         {
 		    trackingGoodRet = true;
         }
-		if(!trackingIsGood && setting_useIMU)
-		{
-			std::cout << "WARNING: Coarse tracker thinks that tracking was not good!" << std::endl;
-            LOGI("SLAM bad tracking");
 
-            if (!isVisualLost) {
-                for(IOWrap::Output3DWrapper* ow : outputWrapper)
-                    ow->publishVisualTrackingQuality(false);
+        if (setting_useIMU) {
+            if(trackingIsGood)
+            {
+                if (isVisualLost) {
+                    for(IOWrap::Output3DWrapper* ow : outputWrapper)
+                        ow->publishVisualTrackingQuality(true);
+                }
+
+                isVisualLost = false;
+            } else {
+                std::cout << "WARNING: Coarse tracker thinks that tracking was not good!" << std::endl;
+
+                if (!isVisualLost) {
+                    for(IOWrap::Output3DWrapper* ow : outputWrapper)
+                        ow->publishVisualTrackingQuality(false);
+                }
+
+                isVisualLost = true;
+                trackingIsGood = true;
             }
-
-            isVisualLost = true;
-			trackingIsGood = true;
-        } else if (trackingIsGood && setting_useIMU) {
-            if (isVisualLost) {
-                for(IOWrap::Output3DWrapper* ow : outputWrapper)
-                    ow->publishVisualTrackingQuality(true);
-            }
-
-            isVisualLost = false;
         }
 
 		if(i != 0)
