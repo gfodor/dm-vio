@@ -54,8 +54,6 @@ enum SystemStatus
     // estimated scale will be sent with publishTransformDSOToIMU. After this has been sent the next Coarse
     // frame tracking will use IMU data for the first time.
     VISUAL_INERTIAL,
-    // Visual tracking has been lost but may be recovered
-    INERTIAL_ONLY
 };
 }
 
@@ -167,6 +165,8 @@ public:
          * Called every time the status of the system changes.
          */
         virtual void publishSystemStatus(dmvio::SystemStatus systemStatus) {}
+
+        virtual void publishVisualTrackingQuality(bool isGood) {}
 
 
         /*  Usage:

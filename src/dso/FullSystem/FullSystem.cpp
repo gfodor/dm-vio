@@ -441,15 +441,23 @@ std::pair<Vec4, bool> FullSystem::trackNewCoarse(FrameHessian* fh, Sophus::SE3 *
 		if(!trackingIsGood && setting_useIMU)
 		{
 			std::cout << "WARNING: Coarse tracker thinks that tracking was not good!" << std::endl;
-			// In IMU mode we can still estimate the pose sufficiently, even if vision is bad.
-      if (imuUsedBefore) {
-        for(IOWrap::Output3DWrapper* ow : outputWrapper)
-            ow->publishSystemStatus(dmvio::INERTIAL_ONLY);
+            LOGI("SLAM bad tracking");
 
-      }
+            if (!isVisualLost) {
+                for(IOWrap::Output3DWrapper* ow : outputWrapper)
+                    ow->publishVisualTrackingQuality(false);
+            }
 
+            isVisualLost = true;
 			trackingIsGood = true;
-		}
+        } else if (trackingIsGood && setting_useIMU) {
+            if (isVisualLost) {
+                for(IOWrap::Output3DWrapper* ow : outputWrapper)
+                    ow->publishVisualTrackingQuality(true);
+            }
+
+            isVisualLost = false;
+        }
 
 		if(i != 0)
 		{
