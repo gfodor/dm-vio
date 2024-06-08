@@ -195,7 +195,7 @@ private:
 	double linAllPointSinle(PointHessian* point, float outlierTHSlack, bool plot);
 
 	// mainPipelineFunctions
-    std::pair<Vec4, bool> trackNewCoarse(FrameHessian* fh, Sophus::SE3 *referenceToFrameHint = 0, bool initDone = false, bool imuUsedBefore = false);
+    std::pair<Vec4, bool> trackNewCoarse(FrameHessian* fh, Sophus::SE3 *referenceToFrameHint = 0);
 	void traceNewCoarse(FrameHessian* fh);
 	void activatePoints();
 	void activatePointsMT();

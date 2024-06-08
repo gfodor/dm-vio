@@ -298,7 +298,7 @@ void FullSystem::printResult(std::string file, bool onlyLogKFPoses, bool saveMet
 	myfile.close();
 }
 
-std::pair<Vec4, bool> FullSystem::trackNewCoarse(FrameHessian* fh, Sophus::SE3 *referenceToFrameHint, bool initDone, bool imuUsedBefore)
+std::pair<Vec4, bool> FullSystem::trackNewCoarse(FrameHessian* fh, Sophus::SE3 *referenceToFrameHint)
 {
     dmvio::TimeMeasurement timeMeasurement(referenceToFrameHint ? "FullSystem::trackNewCoarse" : "FullSystem::trackNewCoarseNoIMU");
 	assert(allFrameHistory.size() > 0);
@@ -917,15 +917,11 @@ void FullSystem::addActiveFrame(ImageAndExposure* image, int id, dmvio::IMUData*
 
     measureInit.end();
 
-    bool initDone = false;
-
     if(!initialized)
     {
         // use initializer!
         if(coarseInitializer->frameID<0)    // first frame set. fh is kept by coarseInitializer.
         {
-            initDone = false;
-
             // Only in this case no IMU-data is accumulated for the BA as this is the first frame.
 		    dmvio::TimeMeasurement initMeasure("InitializerFirstFrame");
 			coarseInitializer->setFirst(&Hcalib, fh);
@@ -938,7 +934,7 @@ void FullSystem::addActiveFrame(ImageAndExposure* image, int id, dmvio::IMUData*
         }else
         {
             dmvio::TimeMeasurement initMeasure("InitializerOtherFrames");
-			      initDone = coarseInitializer->trackFrame(fh, outputWrapper);
+			bool initDone = coarseInitializer->trackFrame(fh, outputWrapper);
 			if(setting_useIMU)
 			{
                 imuIntegration.addIMUDataToBA(*imuData);
@@ -1027,7 +1023,7 @@ void FullSystem::addActiveFrame(ImageAndExposure* image, int id, dmvio::IMUData*
             imuIntegration.addIMUDataToBA(*imuData);
         }
 
-        std::pair<Vec4, bool> pair = trackNewCoarse(fh, referenceToFramePassed, initDone, imuUsedBefore);
+        std::pair<Vec4, bool> pair = trackNewCoarse(fh, referenceToFramePassed);
         dso::Vec4 tres = std::move(pair.first);
         bool forceNoKF = !pair.second; // If coarse tracking was bad don't make KF.
         bool forceKF = false;
