@@ -442,6 +442,12 @@ std::pair<Vec4, bool> FullSystem::trackNewCoarse(FrameHessian* fh, Sophus::SE3 *
 		{
 			std::cout << "WARNING: Coarse tracker thinks that tracking was not good!" << std::endl;
 			// In IMU mode we can still estimate the pose sufficiently, even if vision is bad.
+      if (imuUsedBefore) {
+        for(IOWrap::Output3DWrapper* ow : outputWrapper)
+            ow->publishSystemStatus(dmvio::INERTIAL_ONLY);
+
+      }
+
 			trackingIsGood = true;
 		}
 
@@ -932,7 +938,7 @@ void FullSystem::addActiveFrame(ImageAndExposure* image, int id, dmvio::IMUData*
         }else
         {
             dmvio::TimeMeasurement initMeasure("InitializerOtherFrames");
-			bool initDone = coarseInitializer->trackFrame(fh, outputWrapper);
+			      initDone = coarseInitializer->trackFrame(fh, outputWrapper);
 			if(setting_useIMU)
 			{
                 imuIntegration.addIMUDataToBA(*imuData);
@@ -1021,7 +1027,7 @@ void FullSystem::addActiveFrame(ImageAndExposure* image, int id, dmvio::IMUData*
             imuIntegration.addIMUDataToBA(*imuData);
         }
 
-        std::pair<Vec4, bool> pair = trackNewCoarse(fh, referenceToFramePassed);
+        std::pair<Vec4, bool> pair = trackNewCoarse(fh, referenceToFramePassed, initDone, imuUsedBefore);
         dso::Vec4 tres = std::move(pair.first);
         bool forceNoKF = !pair.second; // If coarse tracking was bad don't make KF.
         bool forceKF = false;
