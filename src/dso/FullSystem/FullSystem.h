@@ -171,6 +171,10 @@ public:
 
 private:
 
+    float *lastImageData = nullptr;
+    Eigen::Vector3f* last_dIp[PYR_LEVELS];	 // coarse tracking / coarse initializer. NAN in [0] only.
+    float* last_absSquaredGrad[PYR_LEVELS];  // only used for pixel select (histograms etc.). no NAN.
+
     dmvio::IMUIntegration imuIntegration;
     bool imuUsedBefore = false;
     dmvio::BAGTSAMIntegration* baIntegration = nullptr;

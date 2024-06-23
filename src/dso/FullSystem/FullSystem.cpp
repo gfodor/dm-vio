@@ -898,6 +898,14 @@ void FullSystem::flagPointsForRemoval()
 // The function is passed the IMU-data from the previous frame until the current frame.
 void FullSystem::addActiveFrame(ImageAndExposure* image, int id, dmvio::IMUData* imuData, dmvio::GTData* gtData)
 {
+    bool sawImage = false;
+
+    if (lastImageData == image->image) {
+        sawImage = true;
+    } else {
+        lastImageData = image->image;
+    }
+
     // Measure Time of the time measurement.
     dmvio::TimeMeasurement timeMeasurementMeasurement("timeMeasurement");
     dmvio::TimeMeasurement timeMeasurementZero("zero");
@@ -923,7 +931,22 @@ void FullSystem::addActiveFrame(ImageAndExposure* image, int id, dmvio::IMUData*
 
     // =========================== make Images / derivatives etc. =========================
 	fh->ab_exposure = image->exposure_time;
-	fh->makeImages(image->image, &Hcalib);
+    if (!sawImage) {
+        fh->makeImages(image->image, &Hcalib);
+
+        // For 0 upt o PYR_LEVELS-1, back up values
+        for (int i = 0; i < PYR_LEVELS; i++) {
+            last_dIp[i] = fh->dIp[i];
+            last_absSquaredGrad[i] = fh->absSquaredGrad[i];
+        }
+    } else {
+        for (int i = 0; i < PYR_LEVELS; i++) {
+            fh->dIp[i] = last_dIp[i];
+            fh->absSquaredGrad[i] = last_absSquaredGrad[i];
+        }
+
+        fh->dI = last_dIp[0];
+    }
 
     measureInit.end();
 
@@ -980,10 +1003,17 @@ void FullSystem::addActiveFrame(ImageAndExposure* image, int id, dmvio::IMUData*
                 }else
                 {
                     fh->shell->poseValid = false;
+
+                    for (int i = 0; i < PYR_LEVELS; i++) {
+                        fh->dIp[i] = nullptr;
+                        fh->absSquaredGrad[i] = nullptr;
+                    }
+
                     delete fh;
                 }
             }
         }
+
 		return;
 	}
 	else	// do front-end operation.
@@ -1035,7 +1065,7 @@ void FullSystem::addActiveFrame(ImageAndExposure* image, int id, dmvio::IMUData*
 
         std::pair<Vec4, bool> pair = trackNewCoarse(fh, referenceToFramePassed);
         dso::Vec4 tres = std::move(pair.first);
-        bool forceNoKF = !pair.second; // If coarse tracking was bad don't make KF.
+        bool forceNoKF = !pair.second || sawImage; // If coarse tracking was bad don't make KF.
         bool forceKF = false;
 		if(!std::isfinite((double)tres[0]) || !std::isfinite((double)tres[1]) || !std::isfinite((double)tres[2]) || !std::isfinite((double)tres[3]))
         {
@@ -1295,6 +1325,12 @@ void FullSystem::mappingLoop()
 					fh->shell->camToWorld = fh->shell->trackingRef->camToWorld * fh->shell->camToTrackingRef;
 					fh->setEvalPT_scaled(fh->shell->camToWorld.inverse(),fh->shell->aff_g2l);
 				}
+
+				for (int i = 0; i < PYR_LEVELS; i++) {
+				    fh->dIp[i] = nullptr;
+				    fh->absSquaredGrad[i] = nullptr;
+				}
+
 				delete fh;
 			}
 
@@ -1348,6 +1384,12 @@ void FullSystem::makeNonKeyFrame( FrameHessian* fh)
 	}
 
 	traceNewCoarse(fh);
+
+	for (int i = 0; i < PYR_LEVELS; i++) {
+	    fh->dIp[i] = nullptr;
+	    fh->absSquaredGrad[i] = nullptr;
+	}
+
 	delete fh;
 }
 
