@@ -79,6 +79,8 @@ BAIMULogic::BAIMULogic(PreintegrationProviderBA* preintegrationProvider, BAGTSAM
                                                   optimizeGravityPtr, optimizedIMUExtrinsicsPtr,
                                                   imuSettings.gravityDirectionFixZ));
 
+    transformDSOToIMU->setScale(imuSettings.initialScale);
+
     baIntegration->setDynamicDSOWeightCallback([this](double lastDSOEnergy, double lastRMSE, bool coarseTrackingWasGood)
                                                {
                                                    return computeDynamicDSOWeight(lastDSOEnergy, lastRMSE,
@@ -624,7 +626,7 @@ gtsam::LinearContainerFactor::shared_ptr BAIMULogic::computeFactorForCoarseGraph
         connectedDims.push_back(keyDimMap.at(key));
     }
     gtsam::SymmetricBlockMatrix sm(connectedDims, true);
-    sm.setFullMatrix(margForFactor * imuSettings.transferCovToCoarseMultiplier);
+    sm.setFullMatrix(margForFactor);
 
     gtsam::LinearContainerFactor::shared_ptr lcf(
             new gtsam::LinearContainerFactor(gtsam::HessianFactor(factorOrdering, sm),

@@ -161,9 +161,11 @@ void IMUSettings::registerArgs(dmvio::SettingsUtil& set)
     set.registerArg("baToCoarseGyrBiasVariance", baToCoarseGyrBiasVariance);
 
     set.registerArg("setting_transferCovToCoarse", setting_transferCovToCoarse);
-    set.registerArg("transferCovToCoarseMultiplier", transferCovToCoarseMultiplier);
+    set.registerArg("initialScale", initialScale);
 
     set.registerArg("setting_visualOnlyAfterScaleFixing", setting_visualOnlyAfterScaleFixing);
+
+    // WARNING: adding more fields here seems to cause crazy things to happen, like crashes on android.
 
     initSettings.registerArgs(set);
 }

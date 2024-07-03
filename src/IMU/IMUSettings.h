@@ -100,7 +100,7 @@ public:
 
     // Settings regarding bias transfer between coarse tracking and BA.
     bool setting_transferCovToCoarse = true; // Transfer covariance from BA to tracking.
-    double transferCovToCoarseMultiplier = 1.0;
+    double initialScale = 1.0;
 
     // ----------- Settings for debugging. -----------
     // Use the visual only system after scale has been fixed, which can be useful for debugging (only makes sense together with setting_scaleFixTH).
