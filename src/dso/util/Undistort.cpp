@@ -212,50 +212,47 @@ void PhotometricUndistorter::unMapFloatImage(float* image)
 
 
 template<typename T>
-void PhotometricUndistorter::processFrame(T* image_in, int stride, float exposure_time, float factor)
+void PhotometricUndistorter::processFrame(T* image_in, float exposure_time, float factor)
 {
-    int wh = w * h;
+	int wh=w*h;
     float* data = output->image;
-    assert(output->w == w && output->h == h);
-    assert(data != 0);
-    if(!valid || exposure_time <= 0 || setting_photometricCalibration == 0) // disable full photometric calibration.
-    {
-        for(int y = 0; y < h; y++)
-        {
-            for(int x = 0; x < w; x++)
-            {
-                int i = y * w + x;
-                data[i] = factor * image_in[y * stride + x];
-            }
-        }
-        output->exposure_time = exposure_time;
-        output->timestamp = 0;
-    }
-    else
-    {
-        for(int y = 0; y < h; y++)
-        {
-            for(int x = 0; x < w; x++)
-            {
-                int i = y * w + x;
-                data[i] = G[image_in[y * stride + x]];
-            }
-        }
-        if(setting_photometricCalibration == 2)
-        {
-            for(int i = 0; i < wh; i++)
-                data[i] *= vignetteMapInv[i];
-        }
-        output->exposure_time = exposure_time;
-        output->timestamp = 0;
-    }
-    if(!setting_useExposure)
-        output->exposure_time = 1;
-}
+	assert(output->w == w && output->h == h);
+	assert(data != 0);
 
-// Update the template instantiations
-template void PhotometricUndistorter::processFrame<unsigned char>(unsigned char* image_in, int stride, float exposure_time, float factor);
-template void PhotometricUndistorter::processFrame<unsigned short>(unsigned short* image_in, int stride, float exposure_time, float factor);
+
+	if(!valid || exposure_time <= 0 || setting_photometricCalibration==0) // disable full photometric calibration.
+	{
+		for(int i=0; i<wh;i++)
+		{
+			data[i] = factor*image_in[i];
+		}
+		output->exposure_time = exposure_time;
+		output->timestamp = 0;
+	}
+	else
+	{
+		for(int i=0; i<wh;i++)
+		{
+			data[i] = G[image_in[i]];
+		}
+
+		if(setting_photometricCalibration==2)
+		{
+			for(int i=0; i<wh;i++)
+				data[i] *= vignetteMapInv[i];
+		}
+
+		output->exposure_time = exposure_time;
+		output->timestamp = 0;
+	}
+
+
+	if(!setting_useExposure)
+		output->exposure_time = 1;
+
+}
+template void PhotometricUndistorter::processFrame<unsigned char>(unsigned char* image_in, float exposure_time, float factor);
+template void PhotometricUndistorter::processFrame<unsigned short>(unsigned short* image_in, float exposure_time, float factor);
 
 
 Undistort::~Undistort()
@@ -392,7 +389,7 @@ ImageAndExposure* Undistort::undistort(const MinimalImage<T>* image_raw, int str
 		exit(1);
 	}
 
-	photometricUndist->processFrame<T>(image_raw->data, stride_in, exposure, factor);
+	photometricUndist->processFrame<T>(image_raw->data, exposure, factor);
 	ImageAndExposure* result = new ImageAndExposure(w, h, timestamp);
 	photometricUndist->output->copyMetaTo(*result);
 
