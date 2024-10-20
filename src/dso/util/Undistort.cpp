@@ -212,7 +212,7 @@ void PhotometricUndistorter::unMapFloatImage(float* image)
 
 
 template<typename T>
-void PhotometricUndistorter::processFrame(T* image_in, float exposure_time, float factor)
+void PhotometricUndistorter::processFrame(T* image_in, int stride, float exposure_time, float factor)
 {
 	int wh=w*h;
     float* data = output->image;
@@ -222,18 +222,26 @@ void PhotometricUndistorter::processFrame(T* image_in, float exposure_time, floa
 
 	if(!valid || exposure_time <= 0 || setting_photometricCalibration==0) // disable full photometric calibration.
 	{
-		for(int i=0; i<wh;i++)
+		for(int y = 0; y < h; y++)
 		{
-			data[i] = factor*image_in[i];
+				for(int x = 0; x < w; x++)
+				{
+						int i = y * w + x;
+						data[i] = factor*image_in[y * stride + x];
+				}
 		}
 		output->exposure_time = exposure_time;
 		output->timestamp = 0;
 	}
 	else
 	{
-		for(int i=0; i<wh;i++)
+		for(int y = 0; y < h; y++)
 		{
-			data[i] = G[image_in[i]];
+				for(int x = 0; x < w; x++)
+				{
+						int i = y * w + x;
+						data[i] = G[image_in[y * stride + x]];
+				}
 		}
 
 		if(setting_photometricCalibration==2)
@@ -251,8 +259,8 @@ void PhotometricUndistorter::processFrame(T* image_in, float exposure_time, floa
 		output->exposure_time = 1;
 
 }
-template void PhotometricUndistorter::processFrame<unsigned char>(unsigned char* image_in, float exposure_time, float factor);
-template void PhotometricUndistorter::processFrame<unsigned short>(unsigned short* image_in, float exposure_time, float factor);
+template void PhotometricUndistorter::processFrame<unsigned char>(unsigned char* image_in, int stride, float exposure_time, float factor);
+template void PhotometricUndistorter::processFrame<unsigned short>(unsigned short* image_in, int stride, float exposure_time, float factor);
 
 
 Undistort::~Undistort()
@@ -381,15 +389,9 @@ void Undistort::loadPhotometricCalibration(std::string file, std::string noiseIm
 }
 
 template<typename T>
-ImageAndExposure* Undistort::undistort(const MinimalImage<T>* image_raw, int stride_in, float exposure, double timestamp, float factor) const
+ImageAndExposure* Undistort::undistort(const MinimalImage<T>* image_raw, float exposure, double timestamp, float factor) const
 {
-	if(image_raw->w != wOrg || image_raw->h != hOrg)
-	{
-		printf("Undistort::undistort: wrong image size (%d %d instead of %d %d) \n", image_raw->w, image_raw->h, w, h);
-		exit(1);
-	}
-
-	photometricUndist->processFrame<T>(image_raw->data, exposure, factor);
+	photometricUndist->processFrame<T>(image_raw->data, image_raw->stride, exposure, factor);
 	ImageAndExposure* result = new ImageAndExposure(w, h, timestamp);
 	photometricUndist->output->copyMetaTo(*result);
 
@@ -478,8 +480,8 @@ ImageAndExposure* Undistort::undistort(const MinimalImage<T>* image_raw, int str
 
 	return result;
 }
-template ImageAndExposure* Undistort::undistort<unsigned char>(const MinimalImage<unsigned char>* image_raw, int stride_in, float exposure, double timestamp, float factor) const;
-template ImageAndExposure* Undistort::undistort<unsigned short>(const MinimalImage<unsigned short>* image_raw, int stride_in, float exposure, double timestamp, float factor) const;
+template ImageAndExposure* Undistort::undistort<unsigned char>(const MinimalImage<unsigned char>* image_raw, float exposure, double timestamp, float factor) const;
+template ImageAndExposure* Undistort::undistort<unsigned short>(const MinimalImage<unsigned short>* image_raw, float exposure, double timestamp, float factor) const;
 
 
 void Undistort::applyBlurNoise(float* img) const
